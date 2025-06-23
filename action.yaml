@@ -1,0 +1,50 @@
+name: 'Check App Version'
+description: 'Check the deployed application version by calling the health endpoint.'
+
+inputs:
+  app_version:
+    description: 'app version'
+    required: true
+  host_name:
+    description: 'app hostname'
+    required: true
+  uri_path:
+    description: 'app health path'
+    required: true
+    default: "/api/v1/internal/health"
+
+runs:
+  using: 'composite'
+  steps:
+    - name: Install jq
+      shell: bash
+      run: |
+        apt-get update
+        apt-get install -y jq curl
+      
+    - name: Check App Version
+      shell: bash
+      run: |
+        sleep 20
+        check_version=false
+        for (( i = 1; i <= 30; ++i ))
+          do
+            echo "Checking service..."
+            RUNNING_VERSION=$(curl -m10 -s https://${{ inputs.host_name }}${{ inputs.uri_path}} | jq -r '.version')
+            if [[ ${RUNNING_VERSION} == ${{ inputs.app_version }} ]]
+              then
+                check_version=true
+                break
+            fi
+            sleep 10
+          done
+
+          if [[ ${check_version} == true ]]
+            then
+              echo "The version: ${{ inputs.app_version }} has been deployed with success"
+              exit 0
+            else
+              echo -e "The deployment has timed out, failed or the running version: ${RUNNING_VERSION} is different from the deployed version: ${{ inputs.app_version }}.\nPlease check logs and pod status in Kubernetes."
+              exit 1
+          fi
+        
