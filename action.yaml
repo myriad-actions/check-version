@@ -16,7 +16,7 @@ inputs:
 runs:
   using: 'composite'
   steps:
-    - name: Install jq
+    - name: Install jq and curl
       shell: bash
       run: |
         apt-get update
@@ -27,24 +27,24 @@ runs:
       run: |
         sleep 20
         check_version=false
-        for (( i = 1; i <= 30; ++i ))
+        for (( i = 1; i <= 15; ++i ))
           do
             echo "Checking service..."
             RUNNING_VERSION=$(curl -m10 -s https://${{ inputs.host_name }}${{ inputs.uri_path}} | jq -r '.version')
             if [[ ${RUNNING_VERSION} == ${{ inputs.app_version }} ]]
               then
-                check_version=true
+                CHECK_VER=true
                 break
             fi
             sleep 10
           done
 
-          if [[ ${check_version} == true ]]
+          if [[ ${CHECK_VER} == true ]]
             then
               echo "The version: ${{ inputs.app_version }} has been deployed with success"
               exit 0
             else
-              echo -e "The deployment has timed out, failed or the running version: ${RUNNING_VERSION} is different from the deployed version: ${{ inputs.app_version }}.\nPlease check logs and pod status in Kubernetes."
+              echo -e "The deployment has timed out or failed.\nThe running version: ${RUNNING_VERSION} is different from the deployed version: ${{ inputs.app_version }}.\nPlease check logs and pod status in Kubernetes."
               exit 1
           fi
         
