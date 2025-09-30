@@ -26,11 +26,11 @@ runs:
       shell: bash
       run: |
         sleep 20
-        check_version=false
+        CHECK_VER=false
         for (( i = 1; i <= 15; ++i ))
           do
             echo "Checking service..."
-            RUNNING_VERSION=$(curl -m10 -s https://${{ inputs.host_name }}${{ inputs.uri_path}} | jq -r '.version')
+            RUNNING_VERSION=$(curl -m10 -s https://${{ inputs.host_name }}${{ inputs.uri_path }} | jq -r '.version')
             if [[ ${RUNNING_VERSION} == ${{ inputs.app_version }} ]]
               then
                 CHECK_VER=true
@@ -39,12 +39,12 @@ runs:
             sleep 10
           done
 
-          if [[ ${CHECK_VER} == true ]]
-            then
-              echo "The version: ${{ inputs.app_version }} has been deployed with success"
-              exit 0
-            else
-              echo -e "The deployment has timed out or failed.\nThe running version: ${RUNNING_VERSION} is different from the deployed version: ${{ inputs.app_version }}.\nPlease check logs and pod status in Kubernetes."
-              exit 1
-          fi
+        if [[ ${CHECK_VER} == true ]]
+          then
+            echo "The version: ${{ inputs.app_version }} has been deployed with success"
+            exit 0
+          else
+            echo -e "The deployment has timed out or failed.\nThe running version: ${RUNNING_VERSION} is different from the deployed version: ${{ inputs.app_version }}.\nPlease check logs and pod status in Kubernetes."
+            exit 1
+        fi
         
