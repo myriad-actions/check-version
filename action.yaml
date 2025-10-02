@@ -19,8 +19,8 @@ runs:
     - name: Install jq and curl
       shell: bash
       run: |
-        apt-get update
-        apt-get install -y jq curl
+        sudo apt-get update
+        sudo apt-get install -y jq curl
       
     - name: Check App Version
       shell: bash
